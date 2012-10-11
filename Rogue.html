@@ -10,28 +10,28 @@
 				this.health = 1;
 				this.attack = 1;
 				this.location = [1,1];
+				this.rep = "%";
 				
 				this.move = function() {
 					var direction = Math.floor((Math.random()*10)/2);
-					var oldLoc = this.location;
 					switch(direction) {
 					case 0:
 						break;
 					case 1:
-						if(oldLoc[0] > 1)
-							this.location[0] = oldLoc[0] - 1;
+						if(this.location[0] > 1)
+							this.location[0]--;
 						break;
 					case 2:
-						if(oldLoc[0] < 5)
-							this.location[0] = oldLoc[0] + 1;
+						if(this.location[0] < 5)
+							this.location[0]++;
 						break;
 					case 3:
-						if(oldLoc[1] > 1)
-							this.location[1] = oldLoc[1] - 1;
+						if(this.location[1] > 1)
+							this.location[1]--;
 						break;
 					case 4:
-						if(oldLoc[1] < 5)
-							this.location[1] = oldLoc[1] + 1;
+						if(this.location[1] < 5)
+							this.location[1]++;
 						break;
 					}
 				};
@@ -41,32 +41,48 @@
 	   					    "Location: " + this.location.toString();	    
 				};
 			}
+			var knight = new function() {
+				this.health = 5;
+				this.attack = 0;
+				this.location = [3,3];
+				this.rep = "&";
+				
+			
+				this.status = function() {
+					return  "Health: " + this.health + "</br>" +
+					   		"Attack: " + this.attack + "</br>" +
+	   					    "Location: " + this.location.toString();	    
+				};
+			}
+			
 			var man = new function() {
 				this.health = 3;
 				this.attack = 2;
 				this.location = [5,3];
-			
+				this.rep = "@";
+				
 				this.move = function(direction) {
-					var oldLoc = this.location;
 					switch(direction) {
 					case 1:
-						if(oldLoc[0] > 1)
-							this.location[0] = oldLoc[0] - 1;
+						if(this.location[0] > 1)
+							this.location[0]--;
 						break;
 					case 2:
-						if(oldLoc[0] < 5)
-							this.location[0] = oldLoc[0] + 1;
+						if(this.location[0] < 5)
+							this.location[0]++;
 						break;
 					case 3:
-						if(oldLoc[1] > 1)
-							this.location[1] = oldLoc[1] - 1;
+						if(this.location[1] > 1)
+							this.location[1]--;
 						break;
 					case 4:
-						if(oldLoc[1] < 5)
-							this.location[1] = oldLoc[1] + 1;
+						if(this.location[1] < 5)
+							this.location[1]++;
 						break;
 					}
 				};
+				
+				
 				this.status = function() {
 					return  "Health: " + this.health + "</br>" +
 					   		"Attack: " + this.attack + "</br>" +
@@ -74,25 +90,43 @@
 				};
 			}
 			
-			function updateWorld(direction) {
-				var array = [[".","_","_","_","_","_","."],
+			function updateWorld(instruction) {
+				var array = [[".",".",".",".",".",".","."],
 							 ["|","_","_","_","_","_","|"],
 							 ["|","_","_","_","_","_","|"],
 							 ["|","_","_","_","_","_","|"],
 							 ["|","_","_","_","_","_","|"],
 							 ["|","_","_","_","_","_","|"],
-							 [".","_","_","_","_","_","."]];
-				man.move(direction);
+							 ["'","'","'","'","'","'","'"]];
+				
+				//get new location for man
+				var oldloc = man.location;
+				man.move(instruction);
+				if(man.location[0] == knight.location[0] && man.location[1] == knight.location[1]) {
+					man.location == oldloc;		
+				}
+				
+				//determine if enemy should move, if so place enemy, else put it away
 				if(enemy.health > 0) {
 					enemy.move();
-					array[enemy.location[0]][enemy.location[1]] = "%";
+					array[enemy.location[0]][enemy.location[1]] = enemy.rep;
 				}
-				array[man.location[0]][man.location[1]] = "@";
+				else {
+					enemy.location[0] = 0;
+					enemy.location[1] = 0;
+				}
+				
+				array[knight.location[0]][knight.location[1]] = knight.rep;
+				
+				//place man
+				array[man.location[0]][man.location[1]] = man.rep;
+				
+				//determine if man squashed fly
 				if(man.location[0] == enemy.location[0] &&
 				   man.location[1] == enemy.location[1] )
 					enemy.health--;
 				
-
+				//create map
 				var map = "";
 				for(i = 0; i < 7; i++) {
 					for(j = 0; j < 7; j++) {
@@ -100,14 +134,18 @@
 					}
 					map += '</br>';
 				}
+				
+				//update html
 				document.getElementById("map").innerHTML = map;
 				document.getElementById("manstatus").innerHTML = man.status();
 				document.getElementById("enemystatus").innerHTML = enemy.status();
+				document.getElementById("knightstatus").innerHTML = knight.status();
 			}
 		</script>
 
 	</head>
 	<body>
+		<p id="debug">DEBUG MESSAGES</p>
 		<p id="map">Here's where a map should appear</p>
 		<button type="button" onclick="updateWorld(0)">Skip</button>	
 		</br>
@@ -121,6 +159,8 @@
 		<p id="manstatus"></p>
 		<p>Enemy</p>
 		<p id="enemystatus"></p>
+		<p>Knight</p>
+		<p id="knightstatus"></p>
 		
 	</body>
 </html>
