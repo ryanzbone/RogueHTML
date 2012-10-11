@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+	<head>
+		<title>HTML ROGUE</title>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<script type="text/javascript">
+
+			var worldObjects = [];
+			
+			var enemy = new function() {
+				this.health = 1;
+				this.attack = 1;
+				this.location = [1,1];
+				
+				this.move = function() {
+					var direction = Math.floor((Math.random()*10)/2);
+					var oldLoc = this.location;
+					switch(direction) {
+					case 0:
+						break;
+					case 1:
+						if(oldLoc[0] > 1)
+							this.location[0] = oldLoc[0] - 1;
+						break;
+					case 2:
+						if(oldLoc[0] < 5)
+							this.location[0] = oldLoc[0] + 1;
+						break;
+					case 3:
+						if(oldLoc[1] > 1)
+							this.location[1] = oldLoc[1] - 1;
+						break;
+					case 4:
+						if(oldLoc[1] < 5)
+							this.location[1] = oldLoc[1] + 1;
+						break;
+					}
+				};
+				this.status = function() {
+					return  "Health: " + this.health + "</br>" +
+					   		"Attack: " + this.attack + "</br>" +
+	   					    "Location: " + this.location.toString();	    
+				};
+			}
+			var man = new function() {
+				this.health = 3;
+				this.attack = 2;
+				this.location = [5,3];
+			
+				this.move = function(direction) {
+					var oldLoc = this.location;
+					switch(direction) {
+					case 1:
+						if(oldLoc[0] > 1)
+							this.location[0] = oldLoc[0] - 1;
+						break;
+					case 2:
+						if(oldLoc[0] < 5)
+							this.location[0] = oldLoc[0] + 1;
+						break;
+					case 3:
+						if(oldLoc[1] > 1)
+							this.location[1] = oldLoc[1] - 1;
+						break;
+					case 4:
+						if(oldLoc[1] < 5)
+							this.location[1] = oldLoc[1] + 1;
+						break;
+					}
+				};
+				this.status = function() {
+					return  "Health: " + this.health + "</br>" +
+					   		"Attack: " + this.attack + "</br>" +
+	   					    "Location: " + this.location.toString();	    
+				};
+			}
+			
+			function updateWorld(direction) {
+				var array = [[".","_","_","_","_","_","."],
+							 ["|","_","_","_","_","_","|"],
+							 ["|","_","_","_","_","_","|"],
+							 ["|","_","_","_","_","_","|"],
+							 ["|","_","_","_","_","_","|"],
+							 ["|","_","_","_","_","_","|"],
+							 [".","_","_","_","_","_","."]];
+				man.move(direction);
+				if(enemy.health > 0) {
+					enemy.move();
+					array[enemy.location[0]][enemy.location[1]] = "%";
+				}
+				array[man.location[0]][man.location[1]] = "@";
+				if(man.location[0] == enemy.location[0] &&
+				   man.location[1] == enemy.location[1] )
+					enemy.health--;
+				
+
+				var map = "";
+				for(i = 0; i < 7; i++) {
+					for(j = 0; j < 7; j++) {
+						map+='<code>' + array[i][j] + '</code>';
+					}
+					map += '</br>';
+				}
+				document.getElementById("map").innerHTML = map;
+				document.getElementById("manstatus").innerHTML = man.status();
+				document.getElementById("enemystatus").innerHTML = enemy.status();
+			}
+		</script>
+
+	</head>
+	<body>
+		<p id="map">Here's where a map should appear</p>
+		<button type="button" onclick="updateWorld(0)">Skip</button>	
+		</br>
+		<button type="button" onclick="updateWorld(1)">North</button>
+		<button type="button" onclick="updateWorld(2)">South</button>
+		<button type="button" onclick="updateWorld(3)">West</button>
+		<button type="button" onclick="updateWorld(4)">East</button>
+
+		<p id="direction"></p>
+		<p>Man</p>
+		<p id="manstatus"></p>
+		<p>Enemy</p>
+		<p id="enemystatus"></p>
+		
+	</body>
+</html>
+	
+	
