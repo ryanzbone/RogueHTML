@@ -3,10 +3,8 @@
 		<title>HTML ROGUE</title>
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 		<script type="text/javascript">
-
-			var worldObjects = [];
 			
-			var enemy = new function() {
+			var fly = new function() {
 				this.health = 1;
 				this.attack = 1;
 				this.location = [1,1];
@@ -41,6 +39,7 @@
 	   					    "Location: " + this.location.toString();	    
 				};
 			}
+			
 			var knight = new function() {
 				this.health = 5;
 				this.attack = 0;
@@ -60,23 +59,47 @@
 				this.attack = 2;
 				this.location = [5,3];
 				this.rep = "@";
+				this.currentKnowledge = [0,0,0,0];
+				
+				this.look = function() {
+					var x = this.location[0];
+					var y = this.location[1];
+					
+					this.currentKnowledge[0] = map.roombase[x-1][y];
+					this.currentKnowledge[1] = map.roombase[x+1][y];
+					this.currentKnowledge[2] = map.roombase[x][y-1];
+					this.currentKnowledge[3] = map.roombase[x][y+1];
+				}
+
+					
 				
 				this.move = function(direction) {
+					this.look();
+					var x = this.location[0];
+					var y = this.location[1];
 					switch(direction) {
 					case 1:
-						if(this.location[0] > 1)
+						x--;
+						if(map.roombase[x][y] == "_")
+						//if(this.currentKnowledge[0] == "_")
 							this.location[0]--;
 						break;
 					case 2:
-						if(this.location[0] < 5)
+						x++;
+						if(map.roombase[x][y] == "_")
+						//if(this.currentKnowledge[2] == "_")
 							this.location[0]++;
 						break;
 					case 3:
-						if(this.location[1] > 1)
+						y--;
+						if(map.roombase[x][y] == "_")
+						//if(this.currentKnowledge[4] == "_")
 							this.location[1]--;
 						break;
 					case 4:
-						if(this.location[1] < 5)
+						y++;
+						if(map.roombase[x][y] == "_")
+						//if(this.currentKnowledge[1] == "_")
 							this.location[1]++;
 						break;
 					}
@@ -86,60 +109,66 @@
 				this.status = function() {
 					return  "Health: " + this.health + "</br>" +
 					   		"Attack: " + this.attack + "</br>" +
-	   					    "Location: " + this.location.toString();	    
+	   					    "Location: " + this.location.toString() + "</br>" +
+	   					    "Current Knowlege: " + this.currentKnowledge.toString();	    
 				};
 			}
 			
-			function updateWorld(instruction) {
-				var array = [[".",".",".",".",".",".","."],
-							 ["|","_","_","_","_","_","|"],
-							 ["|","_","_","_","_","_","|"],
-							 ["|","_","_","_","_","_","|"],
-							 ["|","_","_","_","_","_","|"],
-							 ["|","_","_","_","_","_","|"],
-							 ["'","'","'","'","'","'","'"]];
+			var map = new function() {
+				this.roombase;
 				
-				//get new location for man
-				var oldloc = man.location;
-				man.move(instruction);
-				if(man.location[0] == knight.location[0] && man.location[1] == knight.location[1]) {
-					man.location == oldloc;		
-				}
+				this.initroom = function() {
+					this.roombase = [[".",".",".",".",".",".","."],
+								    ["|","_","_","_","_","_","|"],
+							    	["|","_","_","_","_","_","|"],
+	  							    ["|","_","_","_","_","_","|"],
+								    ["|","_","_","_","_","_","|"],
+								    ["|","_","_","_","_","_","|"],
+				 				    ["'","'","'","'","'","'","'"]];
+				};
+				 
+ 				this.update = function(obj) {
+					this.roombase[obj.location[0]][obj.location[1]] = obj.rep;
+ 				};
 				
-				//determine if enemy should move, if so place enemy, else put it away
-				if(enemy.health > 0) {
-					enemy.move();
-					array[enemy.location[0]][enemy.location[1]] = enemy.rep;
-				}
-				else {
-					enemy.location[0] = 0;
-					enemy.location[1] = 0;
-				}
-				
-				array[knight.location[0]][knight.location[1]] = knight.rep;
-				
-				//place man
-				array[man.location[0]][man.location[1]] = man.rep;
-				
-				//determine if man squashed fly
-				if(man.location[0] == enemy.location[0] &&
-				   man.location[1] == enemy.location[1] )
-					enemy.health--;
-				
-				//create map
-				var map = "";
-				for(i = 0; i < 7; i++) {
-					for(j = 0; j < 7; j++) {
-						map+='<code>' + array[i][j] + '</code>';
+			 	this.print = function() {
+					var mapstring = "";
+					mapstring += '<code>';
+					for(i = 0; i < 7; i++) {			
+						for(j = 0; j < 7; j++) {
+							mapstring+=this.roombase[i][j];
+						}
+						mapstring += '</br>';
 					}
-					map += '</br>';
+					mapstring += '</code>';
+					return mapstring;
+				};
+			
+			}
+			
+			function updateWorld(instruction) {
+				map.initroom();
+				var old = man.location;
+				if(man.location[0] == fly.location[0] && man.location[1] == fly.location[1] ||
+					knight.location[0] == fly.location[0] && knight.location[1] == fly.location[1] ) {
+					fly.health--;
 				}
 				
-				//update html
-				document.getElementById("map").innerHTML = map;
-				document.getElementById("manstatus").innerHTML = man.status();
-				document.getElementById("enemystatus").innerHTML = enemy.status();
-				document.getElementById("knightstatus").innerHTML = knight.status();
+				map.update(knight);
+				man.move(instruction);
+
+				if(fly.health > 0) {
+					fly.move();
+					map.update(fly);
+				}
+
+				map.update(man);
+
+// 				//update html				
+				document.getElementById("map").innerHTML = map.print();
+ 				document.getElementById("manstatus").innerHTML = man.status();
+ 				document.getElementById("enemystatus").innerHTML = fly.status();
+ 				document.getElementById("knightstatus").innerHTML = knight.status();
 			}
 		</script>
 
@@ -157,7 +186,7 @@
 		<p id="direction"></p>
 		<p>Man</p>
 		<p id="manstatus"></p>
-		<p>Enemy</p>
+		<p>Fly</p>
 		<p id="enemystatus"></p>
 		<p>Knight</p>
 		<p id="knightstatus"></p>
